@@ -1,0 +1,5 @@
+- adecuar configuraciones para greendao
+- modificar modelo
+- modificar operador
+- revisar controlador
+- probar
