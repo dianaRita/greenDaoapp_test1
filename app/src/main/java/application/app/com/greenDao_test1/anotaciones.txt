@@ -2,4 +2,4 @@
 - modificar modelo
 - modificar operador
 - revisar controlador
-- probar
+- realizar pruebas
