@@ -38,7 +38,7 @@ public class Controlador {
      */
     public Controlador(MainActivity m) {
         this.m = m;
-        this.op = new Operador((ActivityManager) m.getSystemService(Context.ACTIVITY_SERVICE));
+        this.op = new Operador(m);
         asignaEvento(m.getBtnIns());
         asignaEvento(m.getBtnCons());
         asignaEvento(m.getBtnAct());

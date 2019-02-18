@@ -1,9 +1,8 @@
 package application.app.com.greenDao_test1;
 
 import android.app.ActivityManager;
-
-import com.activeandroid.query.Delete;
-import com.activeandroid.query.Select;
+import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
 
 import java.math.BigInteger;
 import java.text.DecimalFormat;
@@ -13,7 +12,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import application.app.com.greenDao_test1.daoEntity.DaoMaster;
+import application.app.com.greenDao_test1.daoEntity.DaoSession;
 import application.app.com.greenDao_test1.daoEntity.Datos;
+import application.app.com.greenDao_test1.daoEntity.DatosDao;
 
 /**
  * La clase {@link Operador} se utiliza para realizar las operaciones
@@ -27,14 +29,24 @@ public class Operador {
      * {@link ActivityManager} para recuperar el contexto de la aplicación
      */
     private ActivityManager act;
+    private DatosDao dao;
 
     /**
      * Constructor.
      * Recibe como parámetro un ActivitiManager
-     * @param act {@link ActivityManager}
+     * @param m {@link MainActivity}
      */
-    public Operador(ActivityManager act) {
-        this.act = act;
+    public Operador(MainActivity m) {
+        this.act = (ActivityManager) m.getSystemService(Context.ACTIVITY_SERVICE);
+
+        // configuración de la base de datos
+        String DB_NAME = "greendao_test.db";
+        DaoMaster.DevOpenHelper masterHelper = new DaoMaster.DevOpenHelper(m.getApplication(), DB_NAME, null);
+
+        SQLiteDatabase db = masterHelper.getWritableDatabase();
+        DaoMaster master = new DaoMaster(db);
+        DaoSession session = master.newSession();
+        dao = session.getDatosDao();
     }
 
     /**
@@ -143,7 +155,9 @@ public class Operador {
                 memApp = getMemoryApp();
                 memDev = getMemoryDevice();
             }
-            id = genDatos().save();
+            Datos d = genDatos();
+            dao.insert(d);
+            id = d.getId();
         }
         long fin = System.currentTimeMillis();
 
@@ -195,7 +209,8 @@ public class Operador {
             datoIns.setText(d.getText());
             datoIns.setNumDate(d.getNumDate());
             datoIns.setNumBool(d.getNumBool());
-            id = datoIns.save();
+            dao.insert(datoIns);
+            id = datoIns.getId();
         }
         long fin = System.currentTimeMillis();
 
@@ -213,8 +228,20 @@ public class Operador {
     }
 
     /**
-     *
-     * @return
+     * Realiza una consulta de todos los datos en la base de datos.
+     * Devuelve un map con resultados de la consulta y del an&aacute;lisis de tiempo y memoria
+     * <br>Para el tiempo:
+     * <br>tiempo: duraci&oacute;n de la ejecuci&oacute;n de la operaci&oacute;n (ms).
+     * <br>cantCon: cantidad de registros recuperados.
+     * <br>Para la memoria:
+     * <br>memAsigApp: la cantidad de memoria que ART asigna a la aplicaci&oacute;n (mb).
+     * <br>memUsadaApp: la cantidad de memoria utilizada por la aplicaci&oacute;n de la memoria asignada (mb).
+     * <br>porcMemUsadaApp: porcentaje de memoria utilizada de la parcela asignada.
+     * <br>memTotDevice: la cantidad total de memoria del dispositivo (mb).
+     * <br>memUsadaDevice: la cantidad de memoria utilizada por todos los procesos en el dispositivo (mb).
+     * <br>porcMemUsadaDevice:  porcentaje de memoria utilizada por todos los procesos en el dispositivo.
+     * <br>datos:  string con los registros recuperados.
+     * @return rstl {@link Map<String, String>} Resultados.
      */
     public Map<String,String> consulta(){
 
@@ -226,7 +253,7 @@ public class Operador {
 
         ini = System.currentTimeMillis();
         while ( dts == null ) {
-            dts = new Select().all().from( Datos.class ).execute();
+            dts = dao.loadAll();
             memApp = getMemoryApp();
             memDev = getMemoryDevice();
         }
@@ -239,7 +266,7 @@ public class Operador {
                  .append(", real: ").append(d.getReal())
                  .append(", date: ").append(d.getNumDate())
                  .append(", boolean: ").append(d.getNumBool())
-                 .append(" }, ");
+                 .append(" }\n");
         }
 
         Map<String,String> rslt = new HashMap<>();
@@ -276,7 +303,7 @@ public class Operador {
         List<Datos> datos = null;
         Map<String,Double> memApp = null;
         Map<String,Double> memDev = null;
-        datos = new Select().all().from(Datos.class).orderBy("_id ASC").execute();
+        datos = dao.loadAll();
         int n = datos.size();
         long up = -1;
 
@@ -291,8 +318,8 @@ public class Operador {
             oldD.setInteger( newD.getInteger() ); oldD.setReal( newD.getReal() );
             oldD.setText( newD.getText() ); oldD.setNumDate( newD.getNumDate() );
             oldD.setNumBool( newD.getNumBool() );
-
-            up = oldD.save();
+            dao.update(oldD);
+            up = oldD.getId();
         }
         long fin = System.currentTimeMillis();
 
@@ -329,7 +356,7 @@ public class Operador {
         List<Datos> datos = null;
         Map<String,Double> memApp = null;
         Map<String,Double> memDev = null;
-        datos = new Select().all().from(Datos.class).orderBy( "_id ASC" ).execute();
+        datos = dao.loadAll();
         long up = -1;
         int n = datos.size();
         Datos d = genDatos();
@@ -347,8 +374,8 @@ public class Operador {
             oldD.setText(d.getText());
             oldD.setNumDate(d.getNumDate());
             oldD.setNumBool(d.getNumBool());
-
-            up = oldD.save();
+            dao.update(oldD);
+            up = oldD.getId();
         }
         long fin = System.currentTimeMillis();
 
@@ -389,7 +416,7 @@ public class Operador {
         boolean x = true;
         ini = System.currentTimeMillis();
         while ( x ) {
-            new Delete().from(Datos.class).execute();
+            dao.deleteAll();
             memApp = getMemoryApp();
             memDev = getMemoryDevice();
             x = false;
@@ -413,7 +440,7 @@ public class Operador {
      * @return long Cantidad de registros en la base de datos.
      */
     public long getCant(){
-        return new Select().from(Datos.class).count();
+        return dao.count();
     }
 
 }

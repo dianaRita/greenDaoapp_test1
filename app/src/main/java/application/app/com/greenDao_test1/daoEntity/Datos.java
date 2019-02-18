@@ -1,50 +1,47 @@
 package application.app.com.greenDao_test1.daoEntity;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
+import org.greenrobot.greendao.annotation.Entity;
+import org.greenrobot.greendao.annotation.Id;
 
 import java.util.Date;
+import org.greenrobot.greendao.annotation.Generated;
 
 /**
  * Entidad que sirve como modelo para la persistencia de los datos.
  */
-@Table(name = "datos", id = "_id")
-public class Datos extends Model {
+@Entity
+public class Datos {
+
+    @Id(autoincrement = true)
+    private Long id;
+
     /**
      * Atributo que representa la clase de datos para números enteros
      */
-    @Column(name = "integer")
     private Integer integer;
 
     /**
      * Atributo que representa la clase de datos para números reales
      */
-    @Column(name = "real")
     private Double real;
 
     /**
      * Atributo que representa la clase de datos para cadena textos
      */
-    @Column(name = "text")
     private String text;
 
     /**
      * Atributo que representa la clase de datos para fechas
      */
-    @Column(name = "numDate")
     private Date numDate;
 
     /**
      * Atributo que representa la clase de datos para buleanos
      */
-    @Column(name = "numBool")
     private Boolean numBool;
 
 
-    /**
-     * Constructor por defecto
-     */
+    @Generated(hash = 474959832)
     public Datos() {
     }
 
@@ -57,6 +54,17 @@ public class Datos extends Model {
      * @param numBool
      */
     public Datos(Integer integer, Double real, String text, Date numDate, Boolean numBool) {
+        this.integer = integer;
+        this.real = real;
+        this.text = text;
+        this.numDate = numDate;
+        this.numBool = numBool;
+    }
+
+    @Generated(hash = 1776851259)
+    public Datos(Long id, Integer integer, Double real, String text, Date numDate,
+            Boolean numBool) {
+        this.id = id;
         this.integer = integer;
         this.real = real;
         this.text = text;
@@ -111,5 +119,13 @@ public class Datos extends Model {
                 " " + text + '\'' +
                 " " + numDate +
                 " " + numBool ;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 }
